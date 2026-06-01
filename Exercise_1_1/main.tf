@@ -8,15 +8,45 @@ terraform {
 }
 
 provider "aws" {
-  region = "eu-west-3"
+  region = var.aws_region
 }
 
 resource "aws_instance" "my_server" {
-  ami           = "ami-0be40a46b4111e7f5"
-  instance_type = "t3.micro"
-  key_name = "aws_openclassrooms_edo_p5"
+  ami           = var.ami_id
+  instance_type = var.instance_type
+  key_name      = var.key_name
+  vpc_security_group_ids = [
+    aws_security_group.web_sg.id
+  ]
 
   tags = {
     Name = "learn-terraform"
+  }
+}
+resource "aws_security_group" "web_sg" {
+  name        = "web-sg"
+  description = "Allow SSH and HTTP"
+
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
